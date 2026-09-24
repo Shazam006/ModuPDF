@@ -1,4 +1,4 @@
-# PDF OLIVEX V3.1
+# ModuPDF V3.1
 
 Correção principal: arquivos gerados agora usam a API de salvamento do navegador quando disponível, permitindo escolher nome e local.
 

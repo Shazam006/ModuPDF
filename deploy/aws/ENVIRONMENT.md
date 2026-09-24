@@ -8,7 +8,7 @@
 | MAX_CONCURRENT_JOBS | 1 no Compose, 2 em Python | Trabalhos simultaneos por processo |
 | TOOL_TIMEOUT_SECONDS | 300 | Timeout OCR/Office/Word |
 | ALLOWED_ORIGINS | GitHub Pages e localhost | Origens completas separadas por virgula |
-| WORK_DIR | work local, /tmp/pdf-olivex no Docker | Raiz dos diretorios temporarios |
+| WORK_DIR | work local, /tmp/modupdf no Docker | Raiz dos diretorios temporarios |
 | TEMP_TTL_SECONDS | 3600 | Idade minima de residuos para limpeza |
 
 Mantenha um worker Uvicorn: o limite de concorrencia e por processo. Ajuste

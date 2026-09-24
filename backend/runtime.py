@@ -30,7 +30,7 @@ MAX_PAGES = int(os.getenv("MAX_PAGES", "500"))
 TOOL_TIMEOUT = int(os.getenv("TOOL_TIMEOUT_SECONDS", "300"))
 job = contextvars.ContextVar("pdf_job", default=None)
 active_jobs = set()
-logger = logging.getLogger("pdf_olivex")
+logger = logging.getLogger("modupdf")
 PDF = {".pdf"}
 IMAGES = {".png", ".jpg", ".jpeg", ".tif", ".tiff", ".webp"}
 OFFICE = {".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"}

@@ -18,7 +18,7 @@ try {
   const page=await browser.newPage({viewport:{width:1440,height:1000},acceptDownloads:true});
   page.on('pageerror',error=>errors.push(error.message));
   let posted=0;page.on('request',request=>{if(request.method()==='POST'&&request.url().includes('/api/'))posted++;});
-  await page.goto(process.env.PDF_OLIVEX_STATIC_URL || 'http://127.0.0.1:8769');
+  await page.goto(process.env.MODUPDF_STATIC_URL || 'http://127.0.0.1:8769');
   await page.locator('#connectionStatus.local').waitFor();assert.equal(await page.locator('.card[open]').count(),0);
   await page.locator('#orgFile').setInputFiles([path.join(fixtures,'a.pdf'),path.join(fixtures,'b.pdf')]);await page.waitForFunction(()=>document.querySelectorAll('.page').length===5);
   await page.locator('.page').first().click();await page.locator('[data-org="rotate"]').click();await page.locator('[data-org="duplicate"]').click();
@@ -46,7 +46,7 @@ try {
   assert.equal(posted,0);assert.deepEqual(errors,[]);checks.push('no API POSTs or JavaScript errors in static mode');
   await page.setViewportSize({width:390,height:844});await page.locator('[data-tab="converter"]').click();await openTool(page,'images');await page.screenshot({path:path.join(output,'mobile-converter.png'),fullPage:true});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);checks.push('static mobile workflow without overflow');
-  const python=process.env.PDF_OLIVEX_PYTHON||path.join(root,'.venv',process.platform==='win32'?'Scripts/python.exe':'bin/python');
+  const python=process.env.MODUPDF_PYTHON||path.join(root,'.venv',process.platform==='win32'?'Scripts/python.exe':'bin/python');
   const verified=spawnSync(python,[path.join(root,'tests/verify_static_outputs.py'),output],{encoding:'utf8'});assert.equal(verified.status,0,verified.stdout+verified.stderr);checks.push(verified.stdout.trim());
   fs.writeFileSync(path.join(output,'results.json'),JSON.stringify({passed:checks,errors},null,2));console.log(JSON.stringify({passed:checks.length,checks},null,2));
 } finally {await browser.close();}

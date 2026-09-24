@@ -116,7 +116,7 @@ def sign(file: UploadFile = File(...), certificate: UploadFile = File(...), pass
     try:
         with open(source,"rb") as inp, open(path,"wb") as output:
             signers.sign_pdf(IncrementalPdfFileWriter(inp),
-                signers.PdfSignatureMetadata(field_name="AssinaturaOLIVEX"+os.urandom(4).hex(), reason=reason[:200] or None),
+                signers.PdfSignatureMetadata(field_name="AssinaturaModuPDF"+os.urandom(4).hex(), reason=reason[:200] or None),
                 signer=signer,output=output)
     except Exception:
         raise HTTPException(400, "Não foi possível assinar este documento com o certificado informado.")

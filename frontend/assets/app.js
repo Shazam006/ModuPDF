@@ -7,8 +7,8 @@ const pdfOptions = {isEvalSupported:false, enableXfa:false, maxImageSize:2500000
   cMapUrl:new URL('./vendor/pdfjs/cmaps/',import.meta.url).href,cMapPacked:true,
   standardFontDataUrl:new URL('./vendor/pdfjs/standard_fonts/',import.meta.url).href,
   wasmUrl:new URL('./vendor/pdfjs/wasm/',import.meta.url).href};
-let savedApi=null;try{savedApi=localStorage.getItem('pdf-olivex-api');}catch{}
-let apiBase = savedApi ?? window.PDF_OLIVEX_CONFIG?.apiBase ?? '';
+let savedApi=null;try{savedApi=localStorage.getItem('modupdf-api');}catch{}
+let apiBase = savedApi ?? window.MODUPDF_CONFIG?.apiBase ?? '';
 let capabilities = null, online = false, maxUploadMB = 100, maxPages = 500;
 const api = endpoint => (apiBase ? apiBase.replace(/\/$/,'') : location.origin) + endpoint;
 const byteSize = bytes => bytes < 1024 * 1024 ? `${Math.max(1, Math.ceil(bytes/1024))} KB` : `${(bytes/1024/1024).toFixed(2)} MB`;
@@ -258,11 +258,11 @@ async function renderOrganizer() {
     const number=document.createElement('div');number.className='page-number';number.textContent=`${index+1} · Página ${item.page}`;
     const filename=document.createElement('div');filename.className='page-source';filename.textContent=source.file.name;element.append(thumbnail,checkbox,number,filename);
     const toggle=()=>{selected.has(item.id)?selected.delete(item.id):selected.add(item.id);syncSelection();};element.onclick=toggle;element.onkeydown=event=>{if(event.key===' '||event.key==='Enter'){event.preventDefault();toggle();}};
-    element.ondragstart=event=>{if(!selected.has(item.id)){selected.clear();selected.add(item.id);syncSelection();}element.classList.add('dragging');event.dataTransfer.setData('application/x-olivex-page',item.id);event.dataTransfer.effectAllowed='move';};
+    element.ondragstart=event=>{if(!selected.has(item.id)){selected.clear();selected.add(item.id);syncSelection();}element.classList.add('dragging');event.dataTransfer.setData('application/x-modupdf-page',item.id);event.dataTransfer.effectAllowed='move';};
     element.ondragend=()=>{document.querySelectorAll('.page').forEach(el=>el.classList.remove('dragging','insert-before','insert-after'));};
-    element.ondragover=event=>{if(!event.dataTransfer.types.includes('application/x-olivex-page'))return;event.preventDefault();const after=event.clientX>element.getBoundingClientRect().left+element.offsetWidth/2;element.classList.toggle('insert-before',!after);element.classList.toggle('insert-after',after);};
+    element.ondragover=event=>{if(!event.dataTransfer.types.includes('application/x-modupdf-page'))return;event.preventDefault();const after=event.clientX>element.getBoundingClientRect().left+element.offsetWidth/2;element.classList.toggle('insert-before',!after);element.classList.toggle('insert-after',after);};
     element.ondragleave=()=>element.classList.remove('insert-before','insert-after');
-    element.ondrop=event=>{if(!event.dataTransfer.types.includes('application/x-olivex-page'))return;event.preventDefault();event.stopPropagation();element.classList.remove('insert-before','insert-after');if(selected.has(item.id))return;const moving=items.filter(i=>selected.has(i.id));const rest=items.filter(i=>!selected.has(i.id));const after=event.clientX>element.getBoundingClientRect().left+element.offsetWidth/2;const at=rest.findIndex(i=>i.id===item.id)+(after?1:0);rest.splice(at,0,...moving);items=rest;commit();};
+    element.ondrop=event=>{if(!event.dataTransfer.types.includes('application/x-modupdf-page'))return;event.preventDefault();event.stopPropagation();element.classList.remove('insert-before','insert-after');if(selected.has(item.id))return;const moving=items.filter(i=>selected.has(i.id));const rest=items.filter(i=>!selected.has(i.id));const after=event.clientX>element.getBoundingClientRect().left+element.offsetWidth/2;const at=rest.findIndex(i=>i.id===item.id)+(after?1:0);rest.splice(at,0,...moving);items=rest;commit();};
     $('pages').append(element);
     renders.push({source,item,canvas});
   }
@@ -400,7 +400,7 @@ document.querySelectorAll('[data-close]').forEach(button=>button.onclick=()=>$(b
 $('connectionButton').onclick=()=>{$('apiBase').value=apiBase;$('connectionMessage').hidden=true;$('connectionDialog').showModal();};
 $('connectionForm').onsubmit=async event=>{event.preventDefault();const value=$('apiBase').value.trim();
   if(value){const url=new URL(value);if(url.protocol!=='https:'&&!['localhost','127.0.0.1','[::1]'].includes(url.hostname))return status($('connectionMessage'),'Use HTTPS para conectar a um servidor público.','error');apiBase=url.origin;}else apiBase='';
-  try{localStorage.setItem('pdf-olivex-api',apiBase);}catch{}const ok=await connect();status($('connectionMessage'),ok?'Conectado.':'Servidor indisponível ou conexão bloqueada por CORS.',ok?'':'error');if(ok)$('connectionDialog').close();};
+  try{localStorage.setItem('modupdf-api',apiBase);}catch{}const ok=await connect();status($('connectionMessage'),ok?'Conectado.':'Servidor indisponível ou conexão bloqueada por CORS.',ok?'':'error');if(ok)$('connectionDialog').close();};
 $('addOrg').onclick=()=>$('orgFile').click();
 $('orgFile').addEventListener('change',event=>addPdfFiles(event.target.files));
 document.querySelectorAll('[data-org]').forEach(button=>button.onclick=()=>mutateOrg(button.dataset.org));$('saveOrg').onclick=saveOrg;

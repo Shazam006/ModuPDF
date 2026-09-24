@@ -1,11 +1,11 @@
-# Implantacao independente do PDF OLIVEX
+# Implantacao independente do ModuPDF
 
 Este roteiro prepara uma nova infraestrutura. Nao reutilize nem altere
 `geovida_sp`, banco, volumes, IP, arquivos ou security groups GeoVida.
 
 ## Nova instancia
 
-Na conta AWS escolhida: nome `pdf-olivex`, regiao `sa-east-1`, Amazon Linux 2023,
+Na conta AWS escolhida: nome `modupdf`, regiao `sa-east-1`, Amazon Linux 2023,
 x86_64, t3.small, 30 GiB EBS gp3 e IPv4 publico. Use IAM Role com permissoes
 minimas quando integrar logs/ECR; nunca coloque chaves AWS em arquivos do projeto.
 

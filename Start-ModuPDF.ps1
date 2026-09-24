@@ -6,5 +6,5 @@ if (-not (Test-Path -LiteralPath $pythonPath)) {
     throw 'Ambiente Python ausente. Consulte a instalacao no README.md.'
 }
 Set-Location -LiteralPath $projectRoot
-Write-Host "PDF OLIVEX: http://127.0.0.1:$Port"
+Write-Host "ModuPDF: http://127.0.0.1:$Port"
 & $pythonPath -m uvicorn backend.main:app --host 127.0.0.1 --port $Port

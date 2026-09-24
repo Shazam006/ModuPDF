@@ -4,8 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="light">
-  <title>PDF OLIVEX</title>
-  <link rel="icon" href="assets/olivex.png">
+  <title>ModuPDF</title>
+  <meta name="description" content="Organize, otimize, converta, edite e proteja documentos PDF com o ModuPDF.">
+  <link rel="icon" type="image/png" href="assets/modupdf.png">
   <link rel="stylesheet" href="assets/app.css">
   <script src="assets/config.js"></script>
   <script src="assets/vendor/lucide.min.js" defer></script>
@@ -14,12 +15,12 @@
   <script type="module" src="assets/app.js"></script>
 </head>
 <body>
-  <div id="splash" class="splash" aria-label="Carregando PDF OLIVEX">
-    <img src="assets/olivex.png" alt="" class="splash-logo">
-    <strong>PDF OLIVEX</strong><progress aria-label="Carregamento"></progress>
+  <div id="splash" class="splash" aria-label="Carregando ModuPDF">
+    <img src="assets/modupdf.png" alt="" class="splash-logo">
+    <strong>ModuPDF</strong><progress aria-label="Carregamento"></progress>
   </div>
   <header>
-    <div class="brand"><img src="assets/olivex.png" alt="Logo PDF OLIVEX" class="brand-logo"><h1>PDF OLIVEX</h1></div>
+    <div class="brand"><img src="assets/modupdf.png" alt="Símbolo do ModuPDF" class="brand-logo"><h1>ModuPDF</h1></div>
     <div class="connection"><span id="connectionStatus" role="status">Conectando…</span><button type="button" class="icon" id="connectionButton" title="Conexão com o servidor" aria-label="Conexão com o servidor"><i data-lucide="settings-2"></i></button></div>
   </header>
   <main>
@@ -67,7 +68,7 @@
     <section id="converter" class="panel" role="tabpanel" aria-labelledby="tab-converter" hidden><div class="section-heading"><h2>Converter arquivos</h2></div><div class="tool-grid" data-tools="converter"></div></section>
     <section id="editar" class="panel" role="tabpanel" aria-labelledby="tab-editar" hidden><div class="section-heading"><h2>Editar documentos</h2></div><div class="tool-grid" data-tools="editar"></div></section>
     <section id="seguranca" class="panel" role="tabpanel" aria-labelledby="tab-seguranca" hidden><div class="section-heading"><h2>Segurança dos documentos</h2></div><div class="tool-grid" data-tools="seguranca"></div></section>
-    <footer><span>PDF OLIVEX</span><span id="uploadLimit">Limite por operação: 100 MB</span></footer>
+    <footer><span>ModuPDF</span><span id="uploadLimit">Limite por operação: 100 MB</span></footer>
   </main>
   <dialog id="connectionDialog"><form id="connectionForm"><div class="dialog-heading"><h2>Conexão</h2><button type="button" class="icon" data-close="connectionDialog" aria-label="Fechar"><i data-lucide="x"></i></button></div><label for="apiBase">Endereço do servidor</label><input type="url" id="apiBase" placeholder="https://api.exemplo.com"><p class="note">Deixe vazio para usar o servidor que abriu esta página.</p><button type="submit" class="primary">Conectar</button><div class="status" id="connectionMessage" role="status" hidden></div></form></dialog>
   <dialog id="visualDialog" class="visual-dialog">

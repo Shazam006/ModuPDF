@@ -29,7 +29,7 @@ async def lifespan(app):
     yield
 
 
-app = FastAPI(title="PDF OLIVEX", version="4.3", lifespan=lifespan)
+app = FastAPI(title="ModuPDF", version="4.3", lifespan=lifespan)
 app.add_middleware(JobMiddleware)
 app.add_middleware(CORSMiddleware,
     allow_origins=[s.strip() for s in os.getenv("ALLOWED_ORIGINS", "https://shazam006.github.io,http://localhost:8000,http://127.0.0.1:8000,http://localhost:8768,http://127.0.0.1:8768").split(",") if s.strip()],

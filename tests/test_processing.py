@@ -219,9 +219,9 @@ def test_compare(client,pdf):
 
 
 def test_html_conversion(client):
-    html=b'<html><body><h1>OLIVEX HTML</h1><p>Static content</p><script>alert(1)</script><img src="http://127.0.0.1/private"></body></html>'
+    html=b'<html><body><h1>MODUPDF HTML</h1><p>Static content</p><script>alert(1)</script><img src="http://127.0.0.1/private"></body></html>'
     with reopen(client.post("/api/html-to-pdf",files={"file":("a.html",html,"text/html")})) as doc:
-        assert "OLIVEX HTML" in doc[0].get_text() and "alert(1)" not in doc[0].get_text()
+        assert "MODUPDF HTML" in doc[0].get_text() and "alert(1)" not in doc[0].get_text()
 
 
 def test_office_output_containers(client,pdf,table_pdf):
@@ -248,7 +248,7 @@ def test_signature_is_cryptographically_valid(client,pdf,certificate_mime,certif
     from pyhanko_certvalidator import ValidationContext
     from asn1crypto import x509 as asn1x509
     key=rsa.generate_private_key(public_exponent=65537,key_size=2048)
-    name=x509.Name([x509.NameAttribute(NameOID.COMMON_NAME,"OLIVEX TEST")])
+    name=x509.Name([x509.NameAttribute(NameOID.COMMON_NAME,"MODUPDF TEST")])
     now=datetime.now(timezone.utc)
     cert=x509.CertificateBuilder().subject_name(name).issuer_name(name).public_key(key.public_key()).serial_number(x509.random_serial_number()).not_valid_before(now-timedelta(days=1)).not_valid_after(now+timedelta(days=2)).add_extension(x509.KeyUsage(True,True,False,False,False,False,False,False,False),critical=True).sign(key,hashes.SHA256())
     bundle=pkcs12.serialize_key_and_certificates(b"test",key,cert,None,serialization.BestAvailableEncryption(b"secret"))

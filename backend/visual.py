@@ -175,7 +175,7 @@ def compare_pdfs(file1, file2):
         total = max(len(first),len(second))
         for index in range(total):
             page = report.new_page(width=1190, height=842)
-            page.insert_text((24,30), f"PDF OLIVEX - Comparacao - Pagina {index+1}", fontsize=16)
+            page.insert_text((24,30), f"ModuPDF - Comparacao - Pagina {index+1}", fontsize=16)
             pictures = []
             for document in (first,second):
                 if index < len(document):
@@ -217,6 +217,6 @@ def compare_pdfs(file1, file2):
                 if side == 1 and box:
                     page.draw_rect(fitz.Rect(x+box[0]*ratio,90+box[1]*ratio,
                         min(actual.x1,x+box[2]*ratio),min(actual.y1,90+box[3]*ratio)), color=(.85,.1,.15), width=2)
-        report.set_metadata({"title": f"PDF OLIVEX: {changed} de {total} páginas diferentes"})
+        report.set_metadata({"title": f"ModuPDF: {changed} de {total} páginas diferentes"})
         report.save(path, garbage=4, deflate=True)
     return download(path,"comparacao.pdf", headers={"X-Changed-Pages":str(changed)})
