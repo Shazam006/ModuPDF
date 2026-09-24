@@ -18,7 +18,7 @@ button:disabled { opacity: .42; cursor: not-allowed; }
 :is(button, input, select, textarea, summary):focus-visible { outline: 3px solid #ca9322; outline-offset: 3px; }
 header { min-height: 76px; background: white; border-bottom: 1px solid var(--line); padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
-.brand-logo { width: 54px; height: 44px; object-fit: contain; }
+.brand-logo { width: 46px; height: 46px; object-fit: contain; }
 .brand h1 { font-size: 21px; line-height: 1.2; margin: 0; white-space: nowrap; }
 .connection { display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--muted); }
 #connectionStatus { display: inline-flex; align-items: center; gap: 7px; }
@@ -133,7 +133,7 @@ dialog h2 { font-size: 20px; }
 .operation-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 12px; padding: 6px; background: #f0f4f1; }
 .operation-row span { min-width: 0; overflow-wrap: anywhere; }
 .splash { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px; background: white; transition: opacity .2s; }
-.splash-logo { width: 180px; height: 130px; object-fit: contain; }
+.splash-logo { width: 112px; height: 112px; object-fit: contain; }
 .splash strong { font-size: 26px; }
 .splash progress { width: 170px; height: 5px; accent-color: var(--accent); }
 .splash.out { opacity: 0; pointer-events: none; }

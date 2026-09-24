@@ -1,5 +1,7 @@
-# PDF OLIVEX 4.3
+# ModuPDF 4.3
 
+- Nova identidade ModuPDF aplicada ao site, API, Docker, scripts, testes e documentacao.
+- Novo simbolo modular com pagina, letra M e paleta verde, grafite e ocre.
 - Navegacao de cinco abas acessivel, responsiva e com textos UTF-8 corrigidos.
 - Organizador com selecao multipla, insercao drag/drop, controles alternativos,
   duplicacao, rotacao independente, historico real e salvamento na ordem visual.

@@ -1,5 +1,5 @@
 {
-  "name": "pdf-olivex-tests",
+  "name": "modupdf-tests",
   "private": true,
   "type": "module",
   "scripts": {"test:ui": "node tests/browser.cjs", "test:static": "node tests/browser-smoke.mjs"},

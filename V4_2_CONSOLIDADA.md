@@ -1,4 +1,4 @@
-# PDF OLIVEX V4.2 — CONSOLIDADA
+# ModuPDF V4.2 — CONSOLIDADA
 
 Esta versão é incremental sobre a V4.1.
 

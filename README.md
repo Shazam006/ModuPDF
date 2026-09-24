@@ -1,4 +1,4 @@
-# PDF OLIVEX 4.3
+# ModuPDF 4.3
 
 Aplicacao para organizar, otimizar, converter, editar e proteger documentos PDF.
 Usuarios da aplicacao nao precisam de Git. O frontend utiliza bibliotecas locais,
@@ -13,7 +13,7 @@ Com Python 3.12 instalado, execute na pasta do projeto:
 ```powershell
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\Start-PDF-OLIVEX.ps1
+.\Start-ModuPDF.ps1
 ```
 
 Abra http://127.0.0.1:8768. O script utiliza o interpretador do ambiente virtual,
@@ -58,7 +58,7 @@ leitura, temporarios em tmpfs, limite de memoria e um trabalho simultaneo por pa
 ## GitHub Pages
 
 Publique o conteudo de `frontend/`. Caminhos de scripts, logo, worker, fontes e
-recursos sao relativos e funcionam sob `/PDF-OLIVEX/`. Configure
+recursos sao relativos e funcionam sob `/ModuPDF/`. Configure
 `frontend/assets/config.js` com `apiBase: "https://api.seu-dominio.com"`.
 Tambem e possivel escolher o servidor no controle de conexao do cabecalho.
 O frontend nao armazena certificados, senhas nem conteudo dos documentos.
@@ -106,21 +106,21 @@ npx playwright install chromium
 npm run test:ui
 ```
 
-`PDF_OLIVEX_URL`, `PDF_OLIVEX_PYTHON` e `CHROME_PATH` permitem ajustar servidor,
+`MODUPDF_URL`, `MODUPDF_PYTHON` e `CHROME_PATH` permitem ajustar servidor,
 interpretador e navegador. O teste usa uploads, selecao, drag/drop, historico e
 downloads reais, reabre as saidas e captura telas desktop/mobile em `artifacts/ui`.
 Fixtures e certificados de teste ficam em `artifacts/`, nunca no repositorio.
 
 Para testar o modo estatico, sirva `frontend/` na porta 8769 e execute
 `npm run test:static` depois do teste de API, que gera as fixtures. Ajuste
-`PDF_OLIVEX_STATIC_URL` para outra porta. O teste estatico processa arquivos
+`MODUPDF_STATIC_URL` para outra porta. O teste estatico processa arquivos
 sem nenhum POST para a API e verifica downloads e recursos indisponiveis.
 
 Para verificar os motores no ambiente de producao isolado:
 
 ```sh
-docker build --target test -t pdf-olivex-test .
-docker run --rm --network none --tmpfs /tmp:size=512m pdf-olivex-test
+docker build --target test -t modupdf-test .
+docker run --rm --network none --tmpfs /tmp:size=512m modupdf-test
 ```
 
 ## AWS

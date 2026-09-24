@@ -4,11 +4,11 @@ const assert=require('node:assert/strict');
 const {spawnSync}=require('child_process');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 const root=path.resolve(__dirname,'..');
-const python=process.env.PDF_OLIVEX_PYTHON||path.join(root,'.venv',process.platform==='win32'?'Scripts/python.exe':'bin/python');
+const python=process.env.MODUPDF_PYTHON||path.join(root,'.venv',process.platform==='win32'?'Scripts/python.exe':'bin/python');
 const generated=spawnSync(python,[path.join(__dirname,'generate_fixtures.py')],{encoding:'utf8'});
 assert.equal(generated.status,0,generated.stderr);
 const fixtures=path.join(root,'artifacts/fixtures'),output=path.join(root,'artifacts/ui');fs.mkdirSync(output,{recursive:true});
-const base=process.env.PDF_OLIVEX_URL||'http://127.0.0.1:8768';
+const base=process.env.MODUPDF_URL||'http://127.0.0.1:8768';
 const completed=[];
 async function openTool(page,id) {const card=page.locator('#tool-'+id);if(!await card.evaluate(el=>el.open))await card.locator('summary').click();await card.locator('form').waitFor({state:'visible'});}
 async function captureDownload(page,action,name) {
@@ -94,8 +94,8 @@ async function captureDownload(page,action,name) {
     await page.setViewportSize({width:390,height:844});await page.locator('[data-tab="editar"]').click();await openTool(page,'edit');await page.locator('[data-run="edit"]').click();await page.locator('#visualDialog[open]').waitFor();await page.waitForTimeout(300);await page.screenshot({path:path.join(output,'mobile-editor.png')});await page.locator('#visualNext').click();await page.locator('#visualPageInfo').filter({hasText:'2 / 3'}).waitFor();await page.locator('[data-close="visualDialog"]').click();completed.push('mobile editor and page navigation');
     completed.push('all tabs on 320px, 390px and 768px without document overflow');
     // Verify a GitHub Pages style prefix serves relative assets and still connects to the API.
-    await page.route('**/PDF-OLIVEX/**',async route=>{const url=new URL(route.request().url());url.pathname=url.pathname.replace('/PDF-OLIVEX/','/');const response=await route.fetch({url:url.href});await route.fulfill({response});});
-    await page.goto(base+'/PDF-OLIVEX/');await page.locator('#connectionStatus.online').waitFor();assert.ok(await page.locator('.card').count()>20);completed.push('GitHub Pages base path assets');
+    await page.route('**/ModuPDF/**',async route=>{const url=new URL(route.request().url());url.pathname=url.pathname.replace('/ModuPDF/','/');const response=await route.fetch({url:url.href});await route.fulfill({response});});
+    await page.goto(base+'/ModuPDF/');await page.locator('#connectionStatus.online').waitFor();assert.ok(await page.locator('.card').count()>20);completed.push('GitHub Pages base path assets');
     assert.deepEqual(errors,[],'no browser runtime errors');
     const verify=spawnSync(python,[path.join(__dirname,'verify_ui_outputs.py'),output],{encoding:'utf8'});assert.equal(verify.status,0,verify.stdout+verify.stderr);completed.push(verify.stdout.trim());
     fs.writeFileSync(path.join(output,'results.json'),JSON.stringify({passed:completed,errors},null,2));console.log(JSON.stringify({passed:completed.length,checks:completed},null,2));

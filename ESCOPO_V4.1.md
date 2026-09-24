@@ -1,4 +1,4 @@
-# PDF OLIVEX V4.1 — Escopo ativo
+# ModuPDF V4.1 — Escopo ativo
 
 ## Foco desta versão
 

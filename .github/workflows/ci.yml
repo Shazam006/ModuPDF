@@ -1,4 +1,4 @@
-name: Verify PDF OLIVEX
+name: Verify ModuPDF
 on:
   push:
     branches: [main]
@@ -21,9 +21,9 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Browser workflows, API and static
         run: |
-          .venv/bin/python -m uvicorn backend.main:app --host 127.0.0.1 --port 8768 > /tmp/olivex.log 2>&1 &
+          .venv/bin/python -m uvicorn backend.main:app --host 127.0.0.1 --port 8768 > /tmp/modupdf.log 2>&1 &
           api_pid=$!
-          .venv/bin/python -m http.server 8769 --directory frontend > /tmp/olivex-static.log 2>&1 &
+          .venv/bin/python -m http.server 8769 --directory frontend > /tmp/modupdf-static.log 2>&1 &
           static_pid=$!
           trap 'kill "$api_pid" "$static_pid"' EXIT
           for i in $(seq 1 30); do curl --fail --silent http://127.0.0.1:8768/api/health && break; sleep 1; done
@@ -40,6 +40,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: docker build --target test -t pdf-olivex-test .
-      - run: docker run --rm --network none --tmpfs /tmp:size=512m pdf-olivex-test
-      - run: docker build -t pdf-olivex:${{ github.sha }} .
+      - run: docker build --target test -t modupdf-test .
+      - run: docker run --rm --network none --tmpfs /tmp:size=512m modupdf-test
+      - run: docker build -t modupdf:${{ github.sha }} .

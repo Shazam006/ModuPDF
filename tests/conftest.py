@@ -24,7 +24,7 @@ def pdf():
     with fitz.open() as doc:
         for number in range(1,4):
             page = doc.new_page(width=420, height=595)
-            page.insert_text((40,60), f"PAGE {number} - PDF OLIVEX", fontsize=14)
+            page.insert_text((40,60), f"PAGE {number} - ModuPDF", fontsize=14)
         return doc.tobytes()
 
 

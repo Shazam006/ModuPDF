@@ -1,1 +1,1 @@
-Assets estáticos do PDF OLIVEX. A pasta é mantida no repositório para garantir que o mount do FastAPI exista em execução local e em container.
+Assets estáticos do ModuPDF. A pasta é mantida no repositório para garantir que o mount do FastAPI exista em execução local e em container.

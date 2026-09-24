@@ -35,7 +35,7 @@ def test_health():
 def test_home():
     response = client.get("/")
     assert response.status_code == 200
-    assert "PDF OLIVEX" in response.text
+    assert "ModuPDF" in response.text
 
 
 def test_capabilities():

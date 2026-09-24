@@ -1,6 +1,7 @@
-# PDF OLIVEX 4.3 - Homologacao local
+# ModuPDF 4.3 - Homologacao local
 
-Verificacao em 17/09/2026, Windows, Python 3.12 e Chrome headless.
+Verificacao original em 17/09/2026 e revalidacao da identidade ModuPDF em
+24/09/2026, Windows, Python 3.12 e Chrome headless.
 
 ## Resultado
 
@@ -11,6 +12,7 @@ Verificacao em 17/09/2026, Windows, Python 3.12 e Chrome headless.
 - Dependencias Python: `pip check` sem conflitos.
 - Health check: `status: ok`, versao 4.3.
 - Diretorio `work/` vazio depois dos uploads, downloads e erros de teste.
+- Nova identidade verificada no desktop e no celular, sem quebra de layout.
 
 Os downloads foram reabertos para verificar ordem e numero de paginas,
 rotacoes independentes, texto inserido, ocultacao permanente, senhas e valores
@@ -46,7 +48,7 @@ Os sete testes ignorados cobrem OCR em por/eng/spa, Office DOCX/XLSX/PPTX e PDF/
 Na CI do GitHub, o job `engines` executou o contêiner: 91 testes passaram,
 incluindo os sete testes de motores reais. Apenas a verificacao Node foi
 ignorada nesse contêiner; ela pertence ao job separado de frontend.
-Execucao: https://github.com/Shazam006/PDF-OLIVEX/actions/runs/35284704213.
+Execucao: https://github.com/Shazam006/ModuPDF/actions/runs/35284704213.
 
 ## Publicacao
 
@@ -55,18 +57,18 @@ PR #4 integrada na `main`, commit de codigo
 GitHub Pages concluiu a publicacao com sucesso. O site publico passou nas
 18 verificacoes estaticas, incluindo ordem e rotacao dos downloads, texto e
 vetores preservados, imagens nao vazias e interface mobile sem overflow.
-Site: https://shazam006.github.io/PDF-OLIVEX/.
+Site: https://shazam006.github.io/ModuPDF/.
 
 Operacoes avancadas ainda dependem de API com os motores. Publicar o frontend
 nao implanta backend AWS nem HTTPS/Nginx da infraestrutura exclusiva.
 
 Nao houve implantacao na AWS nesta retomada.
 Nenhum recurso GeoVida foi alterado. A homologacao de producao ainda exige
-Docker, EC2 exclusiva do PDF OLIVEX, dominio, HTTPS e testes com motores reais.
+Docker, EC2 exclusiva do ModuPDF, dominio, HTTPS e testes com motores reais.
 
 ## Continuar
 
-Para retomar localmente, execute `Start-PDF-OLIVEX.ps1` na pasta do projeto.
+Para retomar localmente, execute `Start-ModuPDF.ps1` na pasta do projeto.
 Endereco padrao: http://127.0.0.1:8768.
 
 As capturas, resultados do navegador e arquivos de teste ficam em
