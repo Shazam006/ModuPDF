@@ -41,7 +41,7 @@ def test_real_office_conversion(client,kind):
     response=client.post("/api/office-to-pdf",files={"file":("document."+kind,stream.getvalue(),"application/octet-stream")})
     assert response.status_code==200,response.text[:1000] if response.status_code!=200 else ""
     with fitz.open(stream=response.content,filetype="pdf") as doc:
-        assert "MODUPDF" in " ".join(page.get_text() for page in doc)
+        assert "MODUPDF" in " ".join(page.get_text() for page in doc).upper()
 
 
 @pytest.mark.skipif(not caps["pdfa"],reason="Real PDF/A engine is not installed")
