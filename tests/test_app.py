@@ -29,7 +29,7 @@ def test_health():
     response = client.get("/api/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
-    assert response.json()["version"] == "4.3"
+    assert response.json()["version"] == "4.4"
 
 
 def test_home():

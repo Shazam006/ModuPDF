@@ -19,7 +19,8 @@ from .runtime import (FRONT, MAX_PAGES, IMAGES, OFFICE, JobMiddleware,
                       cleanup_stale, download, job, open_pdf, out, parse_pages,
                       reader_pdf, require_tool, run_tool, save_upload,
                       system_capabilities, tool_path, write_pdf)
-from .visual import apply_operations, inspect_forms, update_forms, compare_pdfs
+from .visual import (apply_operations, compare_pdfs, inspect_forms, inspect_text,
+                     replace_text, update_forms)
 from .conversions import html_to_pdf, pdf_to_office, pdf_a, sign
 
 
@@ -29,7 +30,7 @@ async def lifespan(app):
     yield
 
 
-app = FastAPI(title="ModuPDF", version="4.3", lifespan=lifespan)
+app = FastAPI(title="ModuPDF", version="4.4", lifespan=lifespan)
 app.add_middleware(JobMiddleware)
 app.add_middleware(CORSMiddleware,
     allow_origins=[s.strip() for s in os.getenv("ALLOWED_ORIGINS", "https://shazam006.github.io,http://localhost:8000,http://127.0.0.1:8000,http://localhost:8768,http://127.0.0.1:8768").split(",") if s.strip()],
@@ -52,7 +53,7 @@ def home():
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "version": "4.3", "local": os.getenv("APP_ENV", "local") == "local"}
+    return {"status": "ok", "version": "4.4", "local": os.getenv("APP_ENV", "local") == "local"}
 
 
 @app.get("/api/system/capabilities")
@@ -383,6 +384,16 @@ app.post("/api/sign")(sign)
 @app.post("/api/edit")
 def edit(file: UploadFile = File(...), operations: str = Form(...)):
     return apply_operations(file, operations, redaction=False)
+
+
+@app.post("/api/text/inspect")
+def text_inspect(file: UploadFile = File(...)):
+    return inspect_text(file)
+
+
+@app.post("/api/text/replace")
+def text_replace(file: UploadFile = File(...), replacements: str = Form(...)):
+    return replace_text(file, replacements)
 
 
 @app.post("/api/redact")

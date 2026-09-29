@@ -18,6 +18,8 @@ with fitz.open(folder/"organized.pdf") as doc:
         assert page.rotation==item["rotation"]
 with fitz.open(folder/"edited.pdf") as doc:
     assert "UI ADDED TEXT" in doc[0].get_text()
+with fitz.open(folder/"replaced-text.pdf") as doc:
+    assert "UI REPLACED TEXT" in doc[0].get_text()
 with fitz.open(folder/"redacted.pdf") as doc:
     assert "A PAGE 1" not in doc[0].get_text() and "A PAGE 2" in doc[1].get_text()
 with fitz.open(folder/"unlocked.pdf") as doc:

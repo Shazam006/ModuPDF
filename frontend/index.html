@@ -76,7 +76,9 @@
     <div class="visual-layout">
       <aside class="visual-controls">
         <label for="visualMode">Operação</label><select id="visualMode"><option value="text">Texto</option><option value="rectangle">Retângulo</option><option value="image">Imagem</option></select>
+        <div id="visualSelection" class="text-selection" hidden><span>Texto selecionado</span><strong id="visualOriginal"></strong><small id="visualMeta"></small></div>
         <label for="visualText">Texto</label><textarea id="visualText" rows="3"></textarea>
+        <button type="button" class="secondary" id="visualApply" hidden><i data-lucide="check"></i>Registrar alteração</button>
         <div class="two-columns" id="visualTypography"><div><label for="visualSize">Fonte (pt)</label><input id="visualSize" type="number" min="5" max="96" value="14"></div><div><label for="visualColor">Cor</label><input id="visualColor" type="color" value="#000000"></div></div>
         <label for="visualImage">Imagem JPG/PNG</label><input id="visualImage" type="file" accept=".jpg,.jpeg,.png">
         <div id="visualOperations" class="operation-list"></div>

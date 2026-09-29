@@ -35,6 +35,7 @@ const tools = [
   {id:'xlsx',panel:'converter',title:'PDF para Excel',icon:'sheet',endpoint:'pdf-to-office',requires:'xlsx',values:{target:'xlsx'},note:'Extrai tabelas detectadas em planilhas editáveis.'},
   {id:'pptx',panel:'converter',title:'PDF para PowerPoint',icon:'presentation',endpoint:'pdf-to-office',requires:'pptx',values:{target:'pptx'},note:'Cada página vira um slide em imagem; o conteúdo interno não é editável.'},
   {id:'pdfa',panel:'converter',title:'PDF para PDF/A',icon:'archive',endpoint:'pdf-a',requires:'pdfa'},
+  {id:'replace-text',panel:'editar',title:'Editar texto existente',icon:'text-cursor-input',custom:'visual',mode:'replace',requiresServer:true,note:'Para PDFs com texto selecionável. Fontes especiais podem ser substituídas por uma equivalente.'},
   {id:'nums',panel:'editar',title:'Inserir números',icon:'list-ordered',endpoint:'add-page-numbers',fields:[field('Número inicial','start','number',{value:1,min:0,max:100000,required:true})]},
   {id:'watermark',panel:'editar',title:"Marca d'água",icon:'stamp',endpoint:'watermark',fields:[field('Texto','text','text',{placeholder:'CONFIDENCIAL',required:true,maxLength:200})]},
   {id:'crop',panel:'editar',title:'Recortar PDF',icon:'crop',endpoint:'crop',fields:[field('Margem (pontos)','margin','number',{value:20,min:0,step:1,required:true})]},
@@ -175,7 +176,7 @@ function refreshAvailability() {
     const button=document.querySelector(`[data-run="${tool.id}"]`),note=$(tool.id+'-availability');
     const local=!online&&localReady()&&LOCAL_TOOLS.has(tool.id);
     const dependency=tool.requires&&!capabilities?.tools?.[tool.requires];
-    const requiresServer=!tool.custom || tool.custom==='forms';
+    const requiresServer=tool.requiresServer||!tool.custom||tool.custom==='forms';
     button.disabled=!!button.dataset.busy||(requiresServer&&!online&&!local)||!!dependency;
     $('tool-'+tool.id).dataset.unavailable=String(button.disabled&&!button.dataset.busy);
     const state=$(tool.id+'-state');state.hidden=!(dependency||(!online&&requiresServer&&!local));state.textContent=!online?'Servidor necessário':'Motor ausente';
@@ -300,17 +301,24 @@ async function saveOrg() {
 
 let visual=null,visualRender=0,visualTask=null,selectionStart=null;
 async function openVisual(file,mode) {
-  const pdf=await loadPdf(file);
+  let inspection=null;
+  const inspectionPromise=mode==='replace'?(()=>{const body=new FormData();body.append('file',file);return request('text/inspect',body).then(response=>response.json());})():Promise.resolve(null);
+  const [pdf,inspected]=await Promise.all([loadPdf(file),inspectionPromise]);inspection=inspected;
   if(pdf.numPages>maxPages){await pdf.loadingTask.destroy();throw new Error(`Limite de ${maxPages} páginas.`);}
-  visual={file,pdf,mode,page:1,operations:[],fields:[]};
-  $('visualTitle').textContent={edit:'Editar PDF',redact:'Ocultar informações',fields:'Criar campos de formulário'}[mode];
+  visual={file,pdf,mode,page:1,operations:[],fields:[],spans:inspection?.spans||[],selectedSpan:null};
+  $('visualTitle').textContent={edit:'Adicionar elementos',replace:'Editar texto existente',redact:'Ocultar informações',fields:'Criar campos de formulário'}[mode];
   $('visualMode').disabled=mode!=='edit';$('visualMode').value='text';
   $('visualMode').hidden=mode!=='edit';$('visualMode').previousElementSibling.hidden=mode!=='edit';
   $('visualText').value='';$('visualImage').value='';$('visualStatus').hidden=true;$('visualSave').disabled=!online;
-  $('visualText').previousElementSibling.textContent=mode==='fields'?'Nome do campo':'Texto';
+  $('visualText').placeholder=mode==='replace'?'Deixe vazio para excluir o texto':'';
+  $('visualText').previousElementSibling.textContent=mode==='fields'?'Nome do campo':mode==='replace'?'Substituir por':'Texto';
   $('visualText').hidden=mode==='redact';$('visualText').previousElementSibling.hidden=mode==='redact';
   $('visualTypography').hidden=mode!=='edit';$('visualImage').hidden=mode!=='edit';$('visualImage').previousElementSibling.hidden=mode!=='edit';
+  $('visualSelection').hidden=mode!=='replace';$('visualApply').hidden=mode!=='replace';$('visualApply').disabled=true;
+  $('visualOriginal').textContent=mode==='replace'?'Selecione um trecho na página':'';$('visualMeta').textContent='';
+  $('visualSave').lastChild.textContent=mode==='replace'?'Gerar PDF':'Salvar PDF';
   $('visualDialog').showModal();await renderVisual();renderOperationList();
+  if(mode==='replace'&&!visual.spans.length)status($('visualStatus'),'Nenhum texto selecionável foi encontrado. Se o documento for digitalizado, aplique OCR primeiro.','error');
 }
 async function renderVisual() {
   if(!visual)return;const version=++visualRender;
@@ -326,7 +334,17 @@ async function renderVisual() {
   $('visualPrev').disabled=visual.page===1;$('visualNext').disabled=visual.page===visual.pdf.numPages;renderVisualOverlay();
 }
 function renderVisualOverlay(draft=null) {
-  $('visualOverlay').replaceChildren();if(!visual)return;
+  $('visualOverlay').replaceChildren();$('visualOverlay').classList.toggle('text-edit-layer',visual?.mode==='replace');if(!visual)return;
+  if(visual.mode==='replace') {
+    for(const span of visual.spans.filter(item=>item.page===visual.page)) {
+      const hit=document.createElement('button');hit.type='button';hit.className='text-hit';hit.disabled=!span.editable;
+      hit.classList.toggle('selected',visual.selectedSpan?.id===span.id);hit.classList.toggle('queued',visual.operations.some(item=>item.spanId===span.id));
+      hit.setAttribute('aria-label',(span.editable?'Editar ':'Indisponível: ')+span.text);hit.setAttribute('aria-pressed',String(visual.selectedSpan?.id===span.id));hit.title=span.editable?span.text:span.reason;
+      Object.assign(hit.style,{left:span.x*100+'%',top:span.y*100+'%',width:span.w*100+'%',height:span.h*100+'%'});
+      hit.onclick=event=>{event.stopPropagation();selectTextSpan(span);};$('visualOverlay').append(hit);
+    }
+    return;
+  }
   for(const item of [...visual.operations,...visual.fields,...(draft?[draft]:[])].filter(item=>item.page===visual.page)) {
     const box=document.createElement('div');box.className='selection-box '+(item.type||'field');
     Object.assign(box.style,{left:item.x*100+'%',top:item.y*100+'%',width:item.w*100+'%',height:item.h*100+'%'});
@@ -338,13 +356,31 @@ function renderVisualOverlay(draft=null) {
 function renderOperationList() {
   $('visualOperations').replaceChildren();if(!visual)return;
   const list=visual.mode==='fields'?visual.fields:visual.operations;
-  list.forEach((item,index)=>{const row=document.createElement('div');row.className='operation-row';const text=document.createElement('span');text.textContent=`P${item.page} · ${item.name||({text:'Texto',rectangle:'Retângulo',image:'Imagem',redact:'Ocultação'}[item.type])}`;
+  list.forEach((item,index)=>{const row=document.createElement('div');row.className='operation-row';const text=document.createElement('span');text.textContent=visual.mode==='replace'?`P${item.page} · ${item.original} -> ${item.text||'(excluir)'}`:`P${item.page} · ${item.name||({text:'Texto',rectangle:'Retângulo',image:'Imagem',redact:'Ocultação'}[item.type])}`;
     const button=document.createElement('button');button.type='button';button.className='icon danger';button.setAttribute('aria-label','Excluir seleção '+(index+1));button.innerHTML='<i data-lucide="x"></i>';button.onclick=()=>{list.splice(index,1);renderOperationList();renderVisualOverlay();};row.append(text,button);$('visualOperations').append(row);});icons();
+}
+function selectTextSpan(span) {
+  if(!span.editable)return;
+  visual.selectedSpan=span;const existing=visual.operations.find(item=>item.spanId===span.id);
+  $('visualOriginal').textContent=span.text;$('visualMeta').textContent=`${span.font} · ${span.size} pt · página ${span.page}`;
+  $('visualText').value=existing?existing.text:span.text;$('visualApply').disabled=false;$('visualStatus').hidden=true;renderVisualOverlay();$('visualText').focus();$('visualText').select();
+}
+function clearTextSpanSelection() {
+  if(visual?.mode!=='replace')return;
+  visual.selectedSpan=null;$('visualOriginal').textContent='Selecione um trecho na página';$('visualMeta').textContent='';$('visualText').value='';$('visualApply').disabled=true;
+}
+function applyTextReplacement() {
+  if(!visual?.selectedSpan)return;
+  const span=visual.selectedSpan,text=$('visualText').value;const index=visual.operations.findIndex(item=>item.spanId===span.id);
+  if(/[\r\n]/.test(text))return status($('visualStatus'),'Edite um trecho por vez, sem quebra de linha.','error');
+  if(text===span.text) {if(index>=0)visual.operations.splice(index,1);status($('visualStatus'),'Alteração removida.');}
+  else {const item={type:'replace',spanId:span.id,id:span.id,page:span.page,original:span.text,text};if(index>=0)visual.operations[index]=item;else visual.operations.push(item);status($('visualStatus'),text?'Alteração registrada.':'Texto marcado para exclusão.');}
+  renderOperationList();renderVisualOverlay();
 }
 const pointerPosition=event=>{const rect=$('visualSurface').getBoundingClientRect();return {x:Math.max(0,Math.min(1,(event.clientX-rect.left)/rect.width)),y:Math.max(0,Math.min(1,(event.clientY-rect.top)/rect.height))};};
 const pointerRect=end=>({page:visual.page,x:Math.min(selectionStart.x,end.x),y:Math.min(selectionStart.y,end.y),w:Math.abs(selectionStart.x-end.x),h:Math.abs(selectionStart.y-end.y)});
 async function finishSelection(event) {
-  if(!selectionStart||!visual)return;const rect=pointerRect(pointerPosition(event));selectionStart=null;
+  if(!selectionStart||!visual||visual.mode==='replace')return;const rect=pointerRect(pointerPosition(event));selectionStart=null;
   if(rect.w<.01||rect.h<.01){renderVisualOverlay();return;}
   try {
     if(visual.mode==='fields') {
@@ -364,8 +400,8 @@ async function saveVisual() {
   $('visualSave').disabled=true;
   try {const body=new FormData();body.append('file',visual.file);
     const list=visual.mode==='fields'?visual.fields:visual.operations;if(!list.length)throw new Error('Adicione pelo menos uma seleção.');
-    if(visual.mode==='fields')body.append('fields',JSON.stringify(list));else body.append('operations',JSON.stringify(list));
-    status($('visualStatus'),'Processando…','busy');await presentResult(await request(visual.mode==='fields'?'forms':visual.mode==='redact'?'redact':'edit',body),$('visualStatus'));
+    if(visual.mode==='fields')body.append('fields',JSON.stringify(list));else if(visual.mode==='replace')body.append('replacements',JSON.stringify(list.map(({id,page,original,text})=>({id,page,original,text}))));else body.append('operations',JSON.stringify(list));
+    status($('visualStatus'),'Processando…','busy');await presentResult(await request(visual.mode==='fields'?'forms':visual.mode==='replace'?'text/replace':visual.mode==='redact'?'redact':'edit',body),$('visualStatus'));
   }catch(error){status($('visualStatus'),error.message,'error');}finally{$('visualSave').disabled=!online;}
 }
 let formFile=null;
@@ -406,11 +442,12 @@ $('orgFile').addEventListener('change',event=>addPdfFiles(event.target.files));
 document.querySelectorAll('[data-org]').forEach(button=>button.onclick=()=>mutateOrg(button.dataset.org));$('saveOrg').onclick=saveOrg;
 $('organizer').addEventListener('dragover',event=>{if(event.dataTransfer.types.includes('Files'))event.preventDefault();});
 $('organizer').addEventListener('drop',event=>{if(!event.dataTransfer.types.includes('Files'))return;event.preventDefault();addPdfFiles(event.dataTransfer.files);});
-$('visualPrev').onclick=async()=>{if(visual.page>1){visual.page--;await renderVisual();}};$('visualNext').onclick=async()=>{if(visual.page<visual.pdf.numPages){visual.page++;await renderVisual();}};
-$('visualSurface').addEventListener('pointerdown',event=>{if(!visual||event.button!==0)return;selectionStart=pointerPosition(event);$('visualSurface').setPointerCapture(event.pointerId);event.preventDefault();});
+$('visualPrev').onclick=async()=>{if(visual.page>1){visual.page--;clearTextSpanSelection();await renderVisual();}};$('visualNext').onclick=async()=>{if(visual.page<visual.pdf.numPages){visual.page++;clearTextSpanSelection();await renderVisual();}};
+$('visualSurface').addEventListener('pointerdown',event=>{if(!visual||visual.mode==='replace'||event.button!==0)return;selectionStart=pointerPosition(event);$('visualSurface').setPointerCapture(event.pointerId);event.preventDefault();});
 $('visualSurface').addEventListener('pointermove',event=>{if(selectionStart)renderVisualOverlay({...pointerRect(pointerPosition(event)),type:visual.mode==='redact'?'redact':'rectangle'});});
 $('visualSurface').addEventListener('pointerup',finishSelection);$('visualSurface').addEventListener('pointercancel',()=>{selectionStart=null;renderVisualOverlay();});
 $('visualDialog').addEventListener('close',()=>{selectionStart=null;visualRender++;visualTask?.cancel();visualTask=null;visual?.pdf.loadingTask.destroy().catch(()=>{});visual=null;});$('visualSave').onclick=saveVisual;$('formsSave').onclick=saveForms;
+$('visualApply').onclick=applyTextReplacement;$('visualText').addEventListener('keydown',event=>{if(visual?.mode==='replace'&&(event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();applyTextReplacement();}});
 window.addEventListener('resize',()=>{if(visual&&!$('visualDialog').hidden)renderVisual();});
 $('splash').classList.add('out');setTimeout(()=>$('splash').remove(),250);
 connect();

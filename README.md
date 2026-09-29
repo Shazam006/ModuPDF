@@ -1,4 +1,4 @@
-# ModuPDF 4.3
+# ModuPDF 4.4
 
 Aplicacao para organizar, otimizar, converter, editar e proteger documentos PDF.
 Usuarios da aplicacao nao precisam de Git. O frontend utiliza bibliotecas locais,
@@ -26,7 +26,7 @@ sem exigir ativacao. Para escolher outra porta, passe `-Port 8770`.
 | Organizar | Multiplos PDFs, miniaturas, selecao multipla, arrastar paginas, mover, duplicar, girar, excluir, desfazer/refazer, salvar, juntar, dividir em ZIP, extrair e remover |
 | Otimizar | Compressao com meta e medidas reais, reparacao, OCR e imagens digitalizadas |
 | Converter | JPG/PNG/TIFF/WebP para PDF, PDF para imagens, Office/PDF, HTML estatico, Word editavel, extracao de tabelas Excel, slides PowerPoint em imagem, PDF/A |
-| Editar | Numeracao, marca d'agua diagonal, recorte, inserir texto/imagem/retangulo, criar campos e preencher formularios |
+| Editar | Substituir ou excluir texto existente, numeracao, marca d'agua diagonal, recorte, inserir texto/imagem/retangulo, criar campos e preencher formularios |
 | Seguranca | AES-256, desbloqueio com senha, assinatura criptografica P12/PFX, ocultacao permanente e comparacao visual |
 
 OCR, Office para PDF e PDF/A exigem motores externos. O contêiner inclui
@@ -40,7 +40,10 @@ editar os elementos internos. HTML converte texto e CSS estatico sem executar
 scripts ou buscar imagens/recursos externos. PDF/A e produzido pelo OCRmyPDF;
 quando veraPDF nao existe, a interface informa a ausencia de validacao independente.
 Assinar nao implica confianca publica no certificado e nao adiciona carimbo de tempo.
-O editor acrescenta elementos; nao reescreve automaticamente o texto original.
+O editor de texto existente remove o trecho original e grava a substituicao na
+mesma posicao, preservando cor, estilo aproximado e o conteudo visual de fundo.
+Ele aceita texto horizontal e selecionavel. Digitalizacoes precisam de OCR;
+texto inclinado, vertical ou convertido em curvas permanece indisponivel.
 
 ## Docker local
 
