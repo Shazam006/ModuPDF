@@ -3,6 +3,7 @@ import io
 import json
 import math
 import re
+from collections import Counter
 from typing import Literal
 
 import fitz
@@ -89,12 +90,13 @@ def _text_spans(doc, public=False):
         visible = page.rect
         rotation = page.rotation_matrix
         span_index = 0
-        for block in page.get_text("dict", flags=fitz.TEXTFLAGS_TEXT)["blocks"]:
+        for block in page.get_text("rawdict", flags=fitz.TEXTFLAGS_TEXT)["blocks"]:
             for line in block.get("lines", []):
                 direction = tuple(line.get("dir", (1.0, 0.0)))
                 horizontal = math.isclose(direction[0], 1.0, abs_tol=.001) and math.isclose(direction[1], 0.0, abs_tol=.001)
                 for span in line.get("spans", []):
-                    text = span.get("text", "")
+                    characters = span.get("chars", [])
+                    text = "".join(character["c"] for character in characters)
                     if not text or not text.strip():
                         continue
                     span_index += 1
@@ -121,6 +123,7 @@ def _text_spans(doc, public=False):
                             "bbox": rect,
                             "origin": fitz.Point(span.get("origin", (rect.x0, rect.y1))),
                             "flags": int(span.get("flags", 0)),
+                            "chars": characters,
                             "raw_font": span.get("font", ""),
                             "raw_color": int(span.get("color", 0)),
                         })
@@ -155,6 +158,30 @@ def _parse_replacements(raw):
         return replacements
     except (ValueError, TypeError, ValidationError, json.JSONDecodeError):
         raise HTTPException(400, "Alterações de texto inválidas.")
+
+
+def _character_counts(characters):
+    return Counter(
+        (character["c"], *(round(value, 4) for value in character["origin"]))
+        for character in characters if not character["c"].isspace()
+    )
+
+
+def _page_characters(page):
+    for block in page.get_text("rawdict", flags=fitz.TEXTFLAGS_TEXT)["blocks"]:
+        for line in block.get("lines", []):
+            for span in line.get("spans", []):
+                yield from span.get("chars", [])
+
+
+def _replacement_rect(span):
+    # MuPDF removes intersecting glyphs, so a thin strip avoids adjacent lines.
+    rect = fitz.Rect(span["bbox"])
+    midpoint = (rect.y0 + rect.y1) / 2
+    half_height = min(.1, rect.height / 4)
+    inset = min(.01, rect.width / 4)
+    return fitz.Rect(rect.x0 + inset, midpoint - half_height,
+                     rect.x1 - inset, midpoint + half_height)
 
 
 def _fit_font(text, span):
@@ -206,11 +233,17 @@ def replace_text(file, raw):
             by_page.setdefault(span["page"] - 1, []).append((replacement, span))
         for page_index, page_targets in by_page.items():
             page = doc[page_index]
+            if any(annotation.type[0] == fitz.PDF_ANNOT_REDACT for annotation in page.annots() or []):
+                raise HTTPException(400, "Esta página contém ocultações pendentes. Conclua ou remova essas marcações antes de editar o texto.")
+            expected = _character_counts(_page_characters(page))
             for _, span in page_targets:
-                page.add_redact_annot(span["bbox"], fill=False, cross_out=False)
+                expected.subtract(_character_counts(span["chars"]))
+                page.add_redact_annot(_replacement_rect(span), fill=False, cross_out=False)
             page.apply_redactions(images=fitz.PDF_REDACT_IMAGE_NONE,
                                   graphics=fitz.PDF_REDACT_LINE_ART_NONE,
                                   text=fitz.PDF_REDACT_TEXT_REMOVE)
+            if _character_counts(_page_characters(page)) != +expected:
+                raise HTTPException(400, "Não foi possível isolar este trecho sem alterar outros textos. Escolha outro trecho ou documento.")
             for replacement, span in page_targets:
                 if not replacement.text:
                     continue

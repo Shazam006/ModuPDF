@@ -35,7 +35,7 @@ const tools = [
   {id:'xlsx',panel:'converter',title:'PDF para Excel',icon:'sheet',endpoint:'pdf-to-office',requires:'xlsx',values:{target:'xlsx'},note:'Extrai tabelas detectadas em planilhas editáveis.'},
   {id:'pptx',panel:'converter',title:'PDF para PowerPoint',icon:'presentation',endpoint:'pdf-to-office',requires:'pptx',values:{target:'pptx'},note:'Cada página vira um slide em imagem; o conteúdo interno não é editável.'},
   {id:'pdfa',panel:'converter',title:'PDF para PDF/A',icon:'archive',endpoint:'pdf-a',requires:'pdfa'},
-  {id:'replace-text',panel:'editar',title:'Editar texto existente',icon:'text-cursor-input',custom:'visual',mode:'replace',requiresServer:true,note:'Para PDFs com texto selecionável. Fontes especiais podem ser substituídas por uma equivalente.'},
+  {id:'replace-text',panel:'editar',title:'Editar texto existente',icon:'text-cursor-input',custom:'visual',mode:'replace',note:'Para PDFs com texto selecionável. Fontes especiais podem ser substituídas por uma equivalente.'},
   {id:'nums',panel:'editar',title:'Inserir números',icon:'list-ordered',endpoint:'add-page-numbers',fields:[field('Número inicial','start','number',{value:1,min:0,max:100000,required:true})]},
   {id:'watermark',panel:'editar',title:"Marca d'água",icon:'stamp',endpoint:'watermark',fields:[field('Texto','text','text',{placeholder:'CONFIDENCIAL',required:true,maxLength:200})]},
   {id:'crop',panel:'editar',title:'Recortar PDF',icon:'crop',endpoint:'crop',fields:[field('Margem (pontos)','margin','number',{value:20,min:0,step:1,required:true})]},
@@ -176,11 +176,11 @@ function refreshAvailability() {
     const button=document.querySelector(`[data-run="${tool.id}"]`),note=$(tool.id+'-availability');
     const local=!online&&localReady()&&LOCAL_TOOLS.has(tool.id);
     const dependency=tool.requires&&!capabilities?.tools?.[tool.requires];
-    const requiresServer=tool.requiresServer||!tool.custom||tool.custom==='forms';
-    button.disabled=!!button.dataset.busy||(requiresServer&&!online&&!local)||!!dependency;
+    const unavailable=dependency||(!online&&!local);
+    button.disabled=!!button.dataset.busy||!!unavailable;
     $('tool-'+tool.id).dataset.unavailable=String(button.disabled&&!button.dataset.busy);
-    const state=$(tool.id+'-state');state.hidden=!(dependency||(!online&&requiresServer&&!local));state.textContent=!online?'Servidor necessário':'Motor ausente';
-    note.hidden=!(dependency||(!online&&requiresServer&&!local));
+    const state=$(tool.id+'-state');state.hidden=!unavailable;state.textContent=!online?'Servidor necessário':'Motor ausente';
+    note.hidden=!unavailable;
     note.textContent=!online?'Conecte um servidor para usar esta operação.':dependency?'Indisponível neste servidor: motor de '+({office:'Office',ocr:'OCR',pdfa:'PDF/A',sign:'assinatura digital',docx:'Word',xlsx:'Excel',pptx:'PowerPoint'}[tool.requires])+' ausente.':'';
   }
   for(const id of ['images','scan'])$(id+'-file').accept=online?'.jpg,.jpeg,.png,.tif,.tiff,.webp':'.jpg,.jpeg,.png';
@@ -301,10 +301,11 @@ async function saveOrg() {
 
 let visual=null,visualRender=0,visualTask=null,selectionStart=null;
 async function openVisual(file,mode) {
-  let inspection=null;
-  const inspectionPromise=mode==='replace'?(()=>{const body=new FormData();body.append('file',file);return request('text/inspect',body).then(response=>response.json());})():Promise.resolve(null);
-  const [pdf,inspected]=await Promise.all([loadPdf(file),inspectionPromise]);inspection=inspected;
-  if(pdf.numPages>maxPages){await pdf.loadingTask.destroy();throw new Error(`Limite de ${maxPages} páginas.`);}
+  const pdf=await loadPdf(file);let inspection=null;
+  try {
+    if(pdf.numPages>maxPages)throw new Error(`Limite de ${maxPages} páginas.`);
+    if(mode==='replace'){const body=new FormData();body.append('file',file);inspection=await (await request('text/inspect',body)).json();}
+  }catch(error){await pdf.loadingTask.destroy();throw error;}
   visual={file,pdf,mode,page:1,operations:[],fields:[],spans:inspection?.spans||[],selectedSpan:null};
   $('visualTitle').textContent={edit:'Adicionar elementos',replace:'Editar texto existente',redact:'Ocultar informações',fields:'Criar campos de formulário'}[mode];
   $('visualMode').disabled=mode!=='edit';$('visualMode').value='text';

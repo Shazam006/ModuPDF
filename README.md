@@ -44,6 +44,9 @@ O editor de texto existente remove o trecho original e grava a substituicao na
 mesma posicao, preservando cor, estilo aproximado e o conteudo visual de fundo.
 Ele aceita texto horizontal e selecionavel. Digitalizacoes precisam de OCR;
 texto inclinado, vertical ou convertido em curvas permanece indisponivel.
+Linhas proximas sao preservadas. Se houver sobreposicao que impeça isolar o
+trecho, a operacao e recusada antes de gerar o arquivo. Marcacoes de ocultacao
+pendentes na pagina devem ser concluidas ou removidas antes da edicao.
 
 ## Docker local
 

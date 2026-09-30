@@ -42,6 +42,12 @@ try {
   await page.locator('[data-tab="organizar"]').click();await openTool(page,'split');await page.locator('#split-mode').selectOption('individual');await save(page,'[data-run="split"]','split.zip');
   const split=await page.evaluate(async bytes=>Object.keys((await window.JSZip.loadAsync(new Uint8Array(bytes))).files),[...fs.readFileSync(path.join(output,'split.zip'))]);assert.equal(split.length,2);checks.push('static split into individual ZIP');
   await page.locator('[data-tab="seguranca"]').click();await openTool(page,'protect');assert.equal(await page.locator('[data-run="protect"]').isDisabled(),true);
+  for(const [tab,id] of [['editar','replace-text'],['editar','edit'],['editar','newforms'],['editar','forms'],['seguranca','redact']]) {
+    await page.locator('[data-tab="'+tab+'"]').click();await openTool(page,id);
+    assert.equal(await page.locator('[data-run="'+id+'"]').isDisabled(),true,id+' requires an API to save');
+    assert.equal(await page.locator('#'+id+'-state').textContent(),'Servidor necessário');
+    assert.equal(await page.locator('#'+id+'-availability').isVisible(),true);
+  }
   await page.locator('[data-tab="otimizar"]').click();assert.equal(await page.locator('[data-run="ocr"]').isDisabled(),true);assert.equal(await page.locator('#scan-run_ocr').isDisabled(),true);checks.push('server-only operations honestly disabled');
   assert.equal(posted,0);assert.deepEqual(errors,[]);checks.push('no API POSTs or JavaScript errors in static mode');
   await page.setViewportSize({width:390,height:844});await page.locator('[data-tab="converter"]').click();await openTool(page,'images');await page.screenshot({path:path.join(output,'mobile-converter.png'),fullPage:true});

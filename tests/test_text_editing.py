@@ -2,6 +2,7 @@ import io
 import json
 
 import fitz
+import pytest
 from PIL import Image
 
 
@@ -115,3 +116,43 @@ def test_inspect_reports_scanned_page_without_text(client):
     result = inspect(client, content)
     assert result["spans"] == []
     assert result["empty_pages"] == [1]
+
+
+@pytest.mark.parametrize("neighbor_baseline", [53, 83])
+@pytest.mark.parametrize("replacement", ["Valor novo", ""])
+def test_replace_preserves_tightly_spaced_lines(client, neighbor_baseline, replacement):
+    with fitz.open() as doc:
+        page = doc.new_page(width=420, height=260)
+        page.insert_text((40, 68), "Valor antigo", fontname="hebo", fontsize=16)
+        page.insert_text((40, neighbor_baseline), "Vizinho", fontsize=16)
+        content = doc.tobytes()
+    target = next(span for span in inspect(client, content)["spans"] if span["text"] == "Valor antigo")
+    response = replace(client, content, target, replacement)
+    assert response.status_code == 200, response.text
+    with fitz.open(stream=response.content, filetype="pdf") as doc:
+        assert "Valor antigo" not in doc[0].get_text()
+        assert "Vizinho" in doc[0].get_text()
+        if replacement:
+            assert replacement in doc[0].get_text()
+
+
+def test_replace_rejects_overlapping_text_instead_of_deleting_it(client):
+    with fitz.open() as doc:
+        page = doc.new_page(width=420, height=260)
+        page.insert_text((40, 68), "Valor antigo", fontname="hebo", fontsize=16)
+        page.insert_text((40, 68), "Vizinho", fontsize=16)
+        content = doc.tobytes()
+    target = next(span for span in inspect(client, content)["spans"] if span["text"] == "Valor antigo")
+    response = replace(client, content, target, "Valor novo")
+    assert response.status_code == 400, response.text
+    assert "sem alterar outros textos" in response.json()["detail"]
+
+
+def test_replace_does_not_apply_existing_redaction_annotations(client):
+    with fitz.open(stream=make_text_pdf(), filetype="pdf") as doc:
+        doc[0].add_redact_annot(fitz.Rect(300, 160, 350, 200))
+        content = doc.tobytes()
+    target = next(span for span in inspect(client, content)["spans"] if span["text"] == "Valor antigo")
+    response = replace(client, content, target, "Valor novo")
+    assert response.status_code == 400, response.text
+    assert "ocultações pendentes" in response.json()["detail"]
